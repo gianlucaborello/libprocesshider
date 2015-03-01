@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>libprocesshider by gianlucaborello</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>libprocesshider</h1>
+        <p>Hide a process under Linux using the ld preloader</p>
+
+        <p class="view"><a href="https://github.com/gianlucaborello/libprocesshider">View the Project on GitHub <small>gianlucaborello/libprocesshider</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/gianlucaborello/libprocesshider/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/gianlucaborello/libprocesshider/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/gianlucaborello/libprocesshider">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="libprocesshider" class="anchor" href="#libprocesshider" aria-hidden="true"><span class="octicon octicon-link"></span></a>libprocesshider</h1>
+
+<p>Hide a process under Linux using the ld preloader.</p>
+
+<p>Full tutorial available at <a href="https://sysdigcloud.com/hiding-linux-processes-for-fun-and-profit/">https://sysdigcloud.com/hiding-linux-processes-for-fun-and-profit/</a></p>
+
+<p>In short, compile the library:</p>
+
+<pre><code>gianluca@sid:~/libprocesshider$ make
+gcc -Wall -fPIC -shared -o libprocesshider.so processhider.c -ldl
+gianluca@sid:~/libprocesshider$ sudo mv libprocesshider.so /usr/local/lib/
+</code></pre>
+
+<p>Load it with the global dynamic linker</p>
+
+<pre><code>root@sid:~# echo /usr/local/lib/libprocesshider.so &gt;&gt; /etc/ld.so.preload
+</code></pre>
+
+<p>And your process will be off the radar </p>
+
+<pre><code>gianluca@sid:~$ sudo ps aux
+USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND
+...
+
+gianluca@sid:~$ sudo lsof -ni
+COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME
+...
+</code></pre>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/gianlucaborello">gianlucaborello</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>

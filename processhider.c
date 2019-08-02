@@ -67,7 +67,7 @@ static struct dirent* (*original_##readdir)(DIR*) = NULL;               \
 struct dirent* readdir(DIR *dirp)                                       \
 {                                                                       \
     if(original_##readdir == NULL) {                                    \
-        original_##readdir = dlsym(RTLD_NEXT, #readdir);               \
+        original_##readdir = dlsym(RTLD_NEXT, #readdir);                \
         if(original_##readdir == NULL)                                  \
         {                                                               \
             fprintf(stderr, "Error in dlsym: %s\n", dlerror());         \
